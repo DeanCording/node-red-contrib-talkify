@@ -57,7 +57,9 @@ module.exports = function(RED) {
             response.message = new SingleLineMessage('You asked: \"' + request.message.content +
                 '\". I\'m doing well. Thanks for asking.');
 
+            console.log('Request:');
             console.log(util.inspect(request));
+            console.log('Reponse:');
             console.log(util.inspect(response));
 
             next();
@@ -67,14 +69,30 @@ module.exports = function(RED) {
             response.message = new SingleLineMessage('You asked: \"' + request.message.content +
                 '\". I can tell you how I\'m doing if you ask nicely.');
 
+            console.log('Request:');
             console.log(util.inspect(request));
+            console.log('Reponse:');
             console.log(util.inspect(response));
 
             next();
         };
 
+         var helpAction = function(context, request, response, next) {
+            response.message = new SingleLineMessage('You asked: \"' + request.message.content +
+                '\". I don\'t understand.');
+
+            console.log('Request:');
+            console.log(util.inspect(request));
+            console.log('Reponse:');
+            console.log(util.inspect(response));
+
+            next();
+        };
+
+
         var howSkill = new Skill('how_skill', 'how_are_you', howAction);
         var helpSkill = new Skill('help_skill', 'help', helpAction);
+        var unknownSkill = new Skill('', 'unknown', unknownAction);
 
         node.bot.addSkill(howSkill);
         node.bot.addSkill(helpSkill);
