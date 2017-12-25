@@ -1,0 +1,33 @@
+{
+  "name": "node-red-contrib-talkify",
+  "version": "1.0.0",
+  "description": "A node-red node for natural language processing using Talkify.",
+  "dependencies": {
+    "talkify": "2.*"
+  },
+  "author": {
+    "name": "Dean Cording",
+    "email": "dean@cording.id.au"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node-red",
+    "android",
+    "iot",
+    "nlp",
+    "talkify"
+  ],
+  "bugs": {
+    "url": "https://github.com/DeanCording/node-red-contrib-talkify/issues"
+  },
+  "homepage": "https://github.com/DeanCording/node-red-contrib-talkify",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DeanCording/node-red-contrib-talkify.git"
+  },
+  "node-red": {
+    "nodes": {
+      "talkify": "talkify.js"
+    }
+  }
+}
