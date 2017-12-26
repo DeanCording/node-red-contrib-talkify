@@ -62,7 +62,8 @@
 
                     $('<label/>',{class:"node-input-phrases-label"}).text("Phrases").appendTo(row2);
 
-                    var phrasesEditor = $('<div/>',{style: 'height: 250px; min-height:50px;', class: 'node-text-editor'}).appendTo(row2);
+                    var phrasesEditor = $('<div/>',{style: 'height: 250px; min-height:50px;', class: 'node-text-editor',
+		    	id: 'node-input-phrases-editor'}).appendTo(row2);
                     var finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row2);
                     finalspan.append(' &#8594; <span class="node-input-topic-index">'+(i+1)+'</span> ');
                     topicField.change(function() {
@@ -73,7 +74,7 @@
                     phrasesField.val(topic.phrases);
 
                     var editor = RED.editor.createEditor({
-                        id: 'node-input-func-editor',
+                        id: 'node-input-phrases-editor',
                         mode: 'ace/mode/text',
                         value: $("#node-input-phrases-value").val(),
                     });
