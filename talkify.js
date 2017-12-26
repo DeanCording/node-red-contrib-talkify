@@ -53,46 +53,25 @@ module.exports = function(RED) {
             new TrainingDocument('help', 'how could you assist me')
         ], function() {});
 
-        var howAction = function(context, request, response, next) {
-            response.message = new SingleLineMessage('You asked: \"' + request.message.content +
-                '\". I\'m doing well. Thanks for asking.');
+        var action = function(context, request, response, next) {
 
             console.log('Request:');
             console.log(util.inspect(request));
             console.log('Reponse:');
             console.log(util.inspect(response));
+            console.log('Context:');
+            console.log(util.inspect(context));
 
-            next();
-        };
-
-        var helpAction = function(context, request, response, next) {
-            response.message = new SingleLineMessage('You asked: \"' + request.message.content +
-                '\". I can tell you how I\'m doing if you ask nicely.');
-
-            console.log('Request:');
-            console.log(util.inspect(request));
-            console.log('Reponse:');
-            console.log(util.inspect(response));
-
-            next();
-        };
-
-         var helpAction = function(context, request, response, next) {
-            response.message = new SingleLineMessage('You asked: \"' + request.message.content +
-                '\". I don\'t understand.');
-
-            console.log('Request:');
-            console.log(util.inspect(request));
-            console.log('Reponse:');
-            console.log(util.inspect(response));
-
+	    var msg = request.id;
+	    msg.topic = request.skill.current.name;
+            node.send(msg);
             next();
         };
 
 
-        var howSkill = new Skill('how_skill', 'how_are_you', howAction);
-        var helpSkill = new Skill('help_skill', 'help', helpAction);
-        var unknownSkill = new Skill('', 'unknown', unknownAction);
+        var howSkill = new Skill('how', 'how_are_you', action);
+        var helpSkill = new Skill('help', 'help', action);
+        var unknownSkill = new Skill('', 'help', unknownAction);
 
         node.bot.addSkill(howSkill);
         node.bot.addSkill(helpSkill);
@@ -102,13 +81,10 @@ module.exports = function(RED) {
 
             var respond = function(err, messages) {
                 if(err) return console.error(err);
-
-                return console.log(messages);
             };
 
-            node.bot.resolve(123, msg.payload.toString(), respond);
+            node.bot.resolve(msg, msg.payload.toString(), respond);
 
-            node.send(msg);
         });
     }
     RED.nodes.registerType("talkify",TalkifyNode);
