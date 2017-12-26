@@ -14,7 +14,9 @@
         category: 'function',
         color: '#a6bbcf',
         defaults: {
-            name: {value:""}
+            name: {value:""},
+	    topics: {value:[{name:"", phrases:""}]},
+	    outputs: {value:1}
         },
         inputs:1,
         outputs:1,
@@ -40,12 +42,15 @@
                 var valueField = topic.find(".node-input-topic-value");
                 var topicWidth = 120;
                 topicField.width(topicWidth);
-                valueField.typedInput("width",(newWidth-selectWidth-70));
+                valueField.width(newWidth-topicWidth-70);
             }
             $("#node-input-topic-container").css('min-height','250px')
                     .css('min-width','450px').editableList({
                 addItem: function(container,i,opt) {
-                    var topic = opt.t;
+		    if (!opt.hasOwnProperty('t')) {
+                        opt.t = {};
+                    }
+		    var topic = opt.t || {};
                     var row = $('<div/>').appendTo(container);
                     var topicField = $('<input/>',{style:"width:120px; margin-left: 5px; text-align: center;"}).appendTo(row);
                     var valueField = $('<input/>',{class:"node-input-topic-value",type:"text",style:"margin-left: 5px;"}).appendTo(row);
@@ -54,7 +59,7 @@
                     topicField.change(function() {
                         resizeTopic(container);
                     });
-                    topicField.val(topic.t);
+                    topicField.val(topic.name);
                     topicField.change();
                     var currentOutputs = JSON.parse(outputCount.val()||"{}");
                     currentOutputs[opt.hasOwnProperty('i')?opt.i:opt._i] = i;
@@ -75,8 +80,8 @@
                     });
                     outputCount.val(JSON.stringify(currentOutputs));
                 },
-                resizeItem: resizeRule,
-                sortItems: function(rules) {
+                resizeItem: resizeTopic,
+                sortItems: function(topics) {
                     var currentOutputs = JSON.parse(outputCount.val()||"{}");
                     var topics = $("#node-input-topic-container").editableList('items');
                     topics.each(function(i) {
@@ -90,7 +95,7 @@
                 removable: true
             });
             for (var i=0;i<this.topics.length;i++) {
-                var rule = this.topics[i];
+                var topic = this.topics[i];
                 $("#node-input-topic-container").editableList('addItem',{t:topic,i:i});
             }
         },
@@ -103,7 +108,7 @@
                 var topicData = $(this).data('data');
                 var topic = $(this).find("input").val();
                 var t = {name: topic};
-                t.values = topic.find(".node-input-topic-value").typedInput('value');
+                t.phrases = topic.find(".node-input-topic-value").val();
                 node.topics.push(t);
             });
         },

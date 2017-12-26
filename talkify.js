@@ -40,7 +40,7 @@ module.exports = function(RED) {
         RED.nodes.createNode(this,config);
         var node = this;
 
-        node.topics = config.topics;
+        node.topics = config.topics | [];
 
         node.bot = new Bot();
 
@@ -49,12 +49,14 @@ module.exports = function(RED) {
         for (var i=0; i < node.topics.length; i+=1) {
             var topic = node.topics[i];
 
-            topic.values.split("\n").forEach(function (value) {
-                trainingDocuments.push(new TrainingDocument(topic.name, value));
-            }
+            topic.phrases.split("\n").forEach(function (phrase) {
+                trainingDocuments.push(new TrainingDocument(topic.name, phrase));
+            });
         }
 
-        node.bot.trainAll(trainingDocuments, function() {});
+	if (trainingDocuments.length > 0) {
+            node.bot.trainAll(trainingDocuments, function() {});
+        }
 
         var action = function(context, request, response, next) {
 
@@ -67,7 +69,7 @@ module.exports = function(RED) {
         for (var i=0; i < node.topics.length; i+=1) {
             var topic = node.topics[i];
 
-            node.bot.addSkill(new Skill(topic.name, topic.name, action);
+            node.bot.addSkill(new Skill(topic.name, topic.name, action));
         }
 
 
