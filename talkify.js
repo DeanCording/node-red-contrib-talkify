@@ -40,41 +40,35 @@ module.exports = function(RED) {
         RED.nodes.createNode(this,config);
         var node = this;
 
+        node.topics = config.topics;
+
         node.bot = new Bot();
 
+        var trainingDocuments = [];
 
-        node.bot.trainAll([
-            new TrainingDocument('how_are_you', 'how are you'),
-            new TrainingDocument('how_are_you', 'how are you going'),
-            new TrainingDocument('how_are_you', 'how is it going'),
+        for (var i=0; i < node.topics.length; i+=1) {
+            var topic = node.topics[i];
 
-            new TrainingDocument('help', 'how can you help'),
-            new TrainingDocument('help', 'i need some help'),
-            new TrainingDocument('help', 'how could you assist me')
-        ], function() {});
+            topic.values.split("\n").forEach(function (value) {
+                trainingDocuments.push(new TrainingDocument(topic.name, value));
+            }
+        }
+
+        node.bot.trainAll(trainingDocuments, function() {});
 
         var action = function(context, request, response, next) {
 
-            console.log('Request:');
-            console.log(util.inspect(request));
-            console.log('Reponse:');
-            console.log(util.inspect(response));
-            console.log('Context:');
-            console.log(util.inspect(context));
-
-	    var msg = request.id;
-	    msg.topic = request.skill.current.name;
+            var msg = request.id;
+            msg.topic = request.skill.current.name;
             node.send(msg);
             next();
         };
 
+        for (var i=0; i < node.topics.length; i+=1) {
+            var topic = node.topics[i];
 
-        var howSkill = new Skill('how', 'how_are_you', action);
-        var helpSkill = new Skill('help', 'help', action);
-        var unknownSkill = new Skill('', 'help', unknownAction);
-
-        node.bot.addSkill(howSkill);
-        node.bot.addSkill(helpSkill);
+            node.bot.addSkill(new Skill(topic.name, topic.name, action);
+        }
 
 
         node.on('input', function(msg) {

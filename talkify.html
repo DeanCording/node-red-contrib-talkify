@@ -1,4 +1,15 @@
 <script type="text/javascript">
+(function() {
+
+    function getValueLabel(t,v) {
+        if (t === 'str') {
+            return '"'+clipValueLength(v)+'"';
+        } else if (t === 'msg' || t==='flow' || t==='global') {
+            return t+"."+clipValueLength(v);
+        }
+        return clipValueLength(v);
+    }
+
     RED.nodes.registerType('talkify',{
         category: 'function',
         color: '#a6bbcf',
@@ -7,20 +18,124 @@
         },
         inputs:1,
         outputs:1,
-        icon: "file.png",
+        outputLabels: function(index) {
+            var topic = this.topics[index];
+            if (topic) {
+                return topic;
+            }
+        },
+        icon: "switch.png",
         label: function() {
             return this.name||"talkify";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            var node = this;
+            var outputCount = $("#node-input-outputs").val("{}");
+            function resizeTopic(topic) {
+                var newWidth = topic.width();
+                var topicField = topic.find("topic");
+                var valueField = topic.find(".node-input-topic-value");
+                var topicWidth = 120;
+                topicField.width(topicWidth);
+                valueField.typedInput("width",(newWidth-selectWidth-70));
+            }
+            $("#node-input-topic-container").css('min-height','250px')
+                    .css('min-width','450px').editableList({
+                addItem: function(container,i,opt) {
+                    var topic = opt.t;
+                    var row = $('<div/>').appendTo(container);
+                    var topicField = $('<input/>',{style:"width:120px; margin-left: 5px; text-align: center;"}).appendTo(row);
+                    var valueField = $('<input/>',{class:"node-input-topic-value",type:"text",style:"margin-left: 5px;"}).appendTo(row);
+                    var finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row);
+                    finalspan.append(' &#8594; <span class="node-input-topic-index">'+(i+1)+'</span> ');
+                    topicField.change(function() {
+                        resizeTopic(container);
+                    });
+                    topicField.val(topic.t);
+                    topicField.change();
+                    var currentOutputs = JSON.parse(outputCount.val()||"{}");
+                    currentOutputs[opt.hasOwnProperty('i')?opt.i:opt._i] = i;
+                    outputCount.val(JSON.stringify(currentOutputs));
+                },
+                removeItem: function(opt) {
+                    var currentOutputs = JSON.parse(outputCount.val()||"{}");
+                    if (opt.hasOwnProperty('i')) {
+                        currentOutputs[opt.i] = -1;
+                    } else {
+                        delete currentOutputs[opt._i];
+                    }
+                    var topics = $("#node-input-topic-container").editableList('items');
+                    topics.each(function(i) {
+                        $(this).find(".node-input-topic-index").html(i+1);
+                        var data = $(this).data('data');
+                        currentOutputs[data.hasOwnProperty('i')?data.i:data._i] = i;
+                    });
+                    outputCount.val(JSON.stringify(currentOutputs));
+                },
+                resizeItem: resizeRule,
+                sortItems: function(rules) {
+                    var currentOutputs = JSON.parse(outputCount.val()||"{}");
+                    var topics = $("#node-input-topic-container").editableList('items');
+                    topics.each(function(i) {
+                        $(this).find(".node-input-topic-index").html(i+1);
+                        var data = $(this).data('data');
+                        currentOutputs[data.hasOwnProperty('i')?data.i:data._i] = i;
+                    });
+                    outputCount.val(JSON.stringify(currentOutputs));
+                },
+                sortable: true,
+                removable: true
+            });
+            for (var i=0;i<this.topics.length;i++) {
+                var rule = this.topics[i];
+                $("#node-input-topic-container").editableList('addItem',{t:topic,i:i});
+            }
+        },
+        oneditsave: function() {
+            var topics = $("#node-input-topic-container").editableList('items');
+            var topicset;
+            var node = this;
+            node.topics = [];
+            topics.each(function(i) {
+                var topicData = $(this).data('data');
+                var topic = $(this).find("input").val();
+                var t = {name: topic};
+                t.values = topic.find(".node-input-topic-value").typedInput('value');
+                node.topics.push(t);
+            });
+        },
+        oneditresize: function(size) {
+            var rows = $("#dialog-form>div:not(.node-input-topic-container-row)");
+            var height = size.height;
+            for (var i=0;i<rows.size();i++) {
+                height -= $(rows[i]).outerHeight(true);
+            }
+            var editorRow = $("#dialog-form>div.node-input-topic-container-row");
+            height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+            $("#node-input-topic-container").editableList('height',height);
         }
     });
+})();
 </script>
+
 
 <script type="text/x-red" data-template-name="talkify">
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
+        <input type="hidden" id="node-input-outputs"/>
+    </div>
+    <div class="form-row" style="margin-bottom:0;">
+        <label><i class="fa fa-list"></i> Topics</span></label>
+    </div>
+    <div class="form-row node-input-topic-container-row">
+        <ol id="node-input-topic-container"></ol>
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="talkify">
-    <p>A simple node that processes msg.payload using natural language processing</p>
+    <p>A node that processes msg.payload using natural language processing</p>
 </script>
