@@ -56,13 +56,13 @@
 
                     $('<label/>',{class:"node-input-topic-label"}).text("Topic").appendTo(row);
 
-                    var topicField = $('<input/>',{style:"width:120px; margin-left: 5px; text-align: center;", class: 'node-input-topic-value'}).appendTo(row);
+                    var topicField = $('<input/>',{style:"width:120px; margin-left: 5px;", class: 'node-input-topic-value'}).appendTo(row);
 
                     var phrasesField = $('<input/>',{type: 'hidden', autofocus: 'autofocus', class: 'node-input-phrases-value'}).appendTo(row);
 
                     $('<label/>',{class:"node-input-phrases-label"}).text("Phrases").appendTo(row2);
 
-                    var phrasesEditor = $('<div/>',{style: 'height: 250px; min-height:50px;', class: 'node-text-editor'}).appendTo(row2);
+                    var phrasesEditor = $('<div/>',{style: 'height: 250px; min-height:50px; width:80%', class: 'node-text-editor'}).appendTo(row2);
                     var finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row2);
                     finalspan.append(' &#8594; <span class="node-input-topic-index">'+(i+1)+'</span> ');
                     topicField.change(function() {
