@@ -40,19 +40,20 @@ module.exports = function(RED) {
         RED.nodes.createNode(this,config);
         var node = this;
 
-        node.topics = config.topics | [];
+        node.topics = config.topics || [];
+	node.outputs = [];
 
         node.bot = new Bot();
 
         var trainingDocuments = [];
 
-        for (var i=0; i < node.topics.length; i+=1) {
-            var topic = node.topics[i];
-
+        node.topics.forEach(function(topic) {
             topic.phrases.split("\n").forEach(function (phrase) {
-                trainingDocuments.push(new TrainingDocument(topic.name, phrase));
+		if (phrase.length > 2) 
+                    trainingDocuments.push(new TrainingDocument(topic.name, phrase));
             });
-        }
+	    node.outputs.push(topic.name);
+        });
 
 	if (trainingDocuments.length > 0) {
             node.bot.trainAll(trainingDocuments, function() {});
@@ -61,22 +62,33 @@ module.exports = function(RED) {
         var action = function(context, request, response, next) {
 
             var msg = request.id;
-            msg.topic = request.skill.current.name;
-            node.send(msg);
+	    var msgs = new Array(node.outputs.length);
+
+            if (request.skill.current.name == 'recognised') {
+                msg.topic = request.skill.current.topic.name;
+	        msg.confidence = request.skill.current.topic.confidence;
+	    } else {
+		msg.topic = 'unknown';
+	    }
+
+	    msgs[node.outputs.findIndex(function (output) { return output == msg.topic})] = msg;
+            node.send(msgs);
             next();
         };
 
-        for (var i=0; i < node.topics.length; i+=1) {
-            var topic = node.topics[i];
 
-            node.bot.addSkill(new Skill(topic.name, topic.name, action));
-        }
+        node.topics.forEach(function(topic) {
+          node.bot.addSkill(new Skill('recognised', topic.name, action),0.75)});
 
+
+        node.bot.addSkill(new Skill('unknown', undefined, action));
+	    
+        node.outputs.push('unknown');
 
         node.on('input', function(msg) {
 
             var respond = function(err, messages) {
-                if(err) return console.error(err);
+                if(err) return node.error(err,msg);
             };
 
             node.bot.resolve(msg, msg.payload.toString(), respond);
